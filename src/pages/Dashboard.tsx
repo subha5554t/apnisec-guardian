@@ -67,10 +67,12 @@ const Dashboard = () => {
 
   const fetchIssues = async () => {
     let query = supabase.from('issues').select('*').order('created_at', { ascending: false });
-    if (filterType !== 'all') query = query.eq('type', filterType);
+    if (filterType !== 'all') {
+      query = query.eq('type', filterType as IssueType);
+    }
     const { data, error } = await query;
     if (error) toast({ title: 'Error', description: error.message, variant: 'destructive' });
-    else setIssues(data || []);
+    else setIssues((data as Issue[]) || []);
     setIsLoadingIssues(false);
   };
 
