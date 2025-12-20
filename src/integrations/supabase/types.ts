@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       issues: {
         Row: {
+          attachments: string[] | null
           created_at: string
           description: string
           id: string
@@ -27,6 +28,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          attachments?: string[] | null
           created_at?: string
           description: string
           id?: string
@@ -38,6 +40,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          attachments?: string[] | null
           created_at?: string
           description?: string
           id?: string
