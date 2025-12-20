@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-import { Shield, Menu, X, LogOut, User, LayoutDashboard } from 'lucide-react';
+import { Shield, Menu, X, LogOut, User, LayoutDashboard, Plus, Home } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,10 +15,21 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleSignOut = async () => {
     await signOut();
     navigate('/');
+  };
+
+  const scrollToSection = (sectionId: string) => {
+    if (location.pathname !== '/') {
+      navigate('/', { state: { scrollTo: sectionId } });
+    } else {
+      const element = document.getElementById(sectionId);
+      element?.scrollIntoView({ behavior: 'smooth' });
+    }
+    setIsOpen(false);
   };
 
   return (
@@ -38,43 +49,60 @@ const Navbar = () => {
             <Link to="/" className="text-muted-foreground hover:text-primary transition-colors">
               Home
             </Link>
-            <a href="#services" className="text-muted-foreground hover:text-primary transition-colors">
+            <button onClick={() => scrollToSection('services')} className="text-muted-foreground hover:text-primary transition-colors">
               Services
-            </a>
-            <a href="#about" className="text-muted-foreground hover:text-primary transition-colors">
+            </button>
+            <button onClick={() => scrollToSection('about')} className="text-muted-foreground hover:text-primary transition-colors">
               About
-            </a>
-            <a href="#contact" className="text-muted-foreground hover:text-primary transition-colors">
+            </button>
+            <button onClick={() => scrollToSection('contact')} className="text-muted-foreground hover:text-primary transition-colors">
               Contact
-            </a>
+            </button>
+            {user && (
+              <>
+                <Link to="/dashboard" className="text-muted-foreground hover:text-primary transition-colors">
+                  Dashboard
+                </Link>
+                <Link to="/create-issue" className="text-muted-foreground hover:text-primary transition-colors">
+                  Create Issue
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Auth Buttons */}
           <div className="hidden md:flex items-center gap-4">
             {user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="cyber-outline" size="sm" className="gap-2">
-                    <User className="h-4 w-4" />
-                    {user.email?.split('@')[0]}
+              <>
+                <Link to="/create-issue">
+                  <Button variant="cyber" size="sm" className="gap-2">
+                    <Plus className="h-4 w-4" /> New Issue
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem onClick={() => navigate('/dashboard')}>
-                    <LayoutDashboard className="h-4 w-4 mr-2" />
-                    Dashboard
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/profile')}>
-                    <User className="h-4 w-4 mr-2" />
-                    Profile
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Sign Out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                </Link>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="cyber-outline" size="sm" className="gap-2">
+                      <User className="h-4 w-4" />
+                      {user.email?.split('@')[0]}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem onClick={() => navigate('/dashboard')}>
+                      <LayoutDashboard className="h-4 w-4 mr-2" />
+                      Dashboard
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate('/profile')}>
+                      <User className="h-4 w-4 mr-2" />
+                      Profile
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Sign Out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
             ) : (
               <>
                 <Link to="/login">
@@ -111,30 +139,50 @@ const Navbar = () => {
               >
                 Home
               </Link>
-              <a
-                href="#services"
-                className="text-muted-foreground hover:text-primary transition-colors"
-                onClick={() => setIsOpen(false)}
+              <button
+                onClick={() => scrollToSection('services')}
+                className="text-muted-foreground hover:text-primary transition-colors text-left"
               >
                 Services
-              </a>
-              <a
-                href="#about"
-                className="text-muted-foreground hover:text-primary transition-colors"
-                onClick={() => setIsOpen(false)}
+              </button>
+              <button
+                onClick={() => scrollToSection('about')}
+                className="text-muted-foreground hover:text-primary transition-colors text-left"
               >
                 About
-              </a>
-              <a
-                href="#contact"
-                className="text-muted-foreground hover:text-primary transition-colors"
-                onClick={() => setIsOpen(false)}
+              </button>
+              <button
+                onClick={() => scrollToSection('contact')}
+                className="text-muted-foreground hover:text-primary transition-colors text-left"
               >
                 Contact
-              </a>
+              </button>
+              {user && (
+                <>
+                  <Link
+                    to="/dashboard"
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Dashboard
+                  </Link>
+                  <Link
+                    to="/create-issue"
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Create Issue
+                  </Link>
+                </>
+              )}
               <div className="flex flex-col gap-2 pt-4 border-t border-border">
                 {user ? (
                   <>
+                    <Link to="/create-issue" onClick={() => setIsOpen(false)}>
+                      <Button variant="cyber" className="w-full gap-2">
+                        <Plus className="h-4 w-4" /> New Issue
+                      </Button>
+                    </Link>
                     <Link to="/dashboard" onClick={() => setIsOpen(false)}>
                       <Button variant="cyber-outline" className="w-full">
                         Dashboard

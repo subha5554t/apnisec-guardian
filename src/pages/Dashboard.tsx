@@ -3,15 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import Navbar from '@/components/layout/Navbar';
-import { Plus, Cloud, Target, Shield, Trash2, Edit, Filter } from 'lucide-react';
+import { Plus, Cloud, Target, Shield, Trash2, Filter, Paperclip } from 'lucide-react';
 
 type IssueType = 'cloud-security' | 'redteam-assessment' | 'vapt';
 type IssueStatus = 'open' | 'in-progress' | 'resolved' | 'closed';
@@ -25,6 +22,7 @@ interface Issue {
   status: IssueStatus;
   priority: IssuePriority;
   created_at: string;
+  attachments?: string[];
 }
 
 const issueTypeLabels = {
@@ -53,9 +51,7 @@ const Dashboard = () => {
   const { toast } = useToast();
   const [issues, setIssues] = useState<Issue[]>([]);
   const [isLoadingIssues, setIsLoadingIssues] = useState(true);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [filterType, setFilterType] = useState<string>('all');
-  const [newIssue, setNewIssue] = useState({ title: '', description: '', type: 'cloud-security' as IssueType, priority: 'medium' as IssuePriority });
 
   useEffect(() => {
     if (!loading && !user) navigate('/login');
@@ -74,37 +70,6 @@ const Dashboard = () => {
     if (error) toast({ title: 'Error', description: error.message, variant: 'destructive' });
     else setIssues((data as Issue[]) || []);
     setIsLoadingIssues(false);
-  };
-
-  const createIssue = async () => {
-    if (!newIssue.title || !newIssue.description) {
-      toast({ title: 'Error', description: 'Please fill all fields', variant: 'destructive' });
-      return;
-    }
-    const { error } = await supabase.from('issues').insert({ ...newIssue, user_id: user?.id });
-    if (error) toast({ title: 'Error', description: error.message, variant: 'destructive' });
-    else {
-      // Send email notification
-      try {
-        await supabase.functions.invoke('send-issue-notification', {
-          body: {
-            email: user?.email,
-            userName: user?.user_metadata?.full_name || user?.email?.split('@')[0],
-            issueTitle: newIssue.title,
-            issueType: newIssue.type,
-            issuePriority: newIssue.priority,
-            issueDescription: newIssue.description,
-          },
-        });
-      } catch (emailError) {
-        console.error('Failed to send issue notification:', emailError);
-      }
-      
-      toast({ title: 'Success', description: 'Issue created successfully. Email notification sent!' });
-      setNewIssue({ title: '', description: '', type: 'cloud-security', priority: 'medium' });
-      setIsDialogOpen(false);
-      fetchIssues();
-    }
   };
 
   const deleteIssue = async (id: string) => {
@@ -143,36 +108,9 @@ const Dashboard = () => {
                 <SelectItem value="vapt">VAPT</SelectItem>
               </SelectContent>
             </Select>
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild><Button variant="cyber"><Plus className="h-4 w-4" />New Issue</Button></DialogTrigger>
-              <DialogContent className="bg-card border-border">
-                <DialogHeader><DialogTitle>Create New Issue</DialogTitle></DialogHeader>
-                <div className="space-y-4">
-                  <Input placeholder="Title" value={newIssue.title} onChange={(e) => setNewIssue({ ...newIssue, title: e.target.value })} className="bg-background" />
-                  <Textarea placeholder="Description" value={newIssue.description} onChange={(e) => setNewIssue({ ...newIssue, description: e.target.value })} className="bg-background" />
-                  <div className="grid grid-cols-2 gap-4">
-                    <Select value={newIssue.type} onValueChange={(v) => setNewIssue({ ...newIssue, type: v as IssueType })}>
-                      <SelectTrigger className="bg-background"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="cloud-security">Cloud Security</SelectItem>
-                        <SelectItem value="redteam-assessment">Red Team</SelectItem>
-                        <SelectItem value="vapt">VAPT</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Select value={newIssue.priority} onValueChange={(v) => setNewIssue({ ...newIssue, priority: v as IssuePriority })}>
-                      <SelectTrigger className="bg-background"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="low">Low</SelectItem>
-                        <SelectItem value="medium">Medium</SelectItem>
-                        <SelectItem value="high">High</SelectItem>
-                        <SelectItem value="critical">Critical</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <Button variant="cyber" className="w-full" onClick={createIssue}>Create Issue</Button>
-                </div>
-              </DialogContent>
-            </Dialog>
+            <Button variant="cyber" onClick={() => navigate('/create-issue')} className="gap-2">
+              <Plus className="h-4 w-4" />New Issue
+            </Button>
           </div>
         </div>
 
@@ -180,7 +118,12 @@ const Dashboard = () => {
           <div className="text-center py-12 text-muted-foreground">Loading issues...</div>
         ) : issues.length === 0 ? (
           <Card className="bg-card border-border text-center py-12">
-            <CardContent><p className="text-muted-foreground">No issues found. Create your first issue to get started.</p></CardContent>
+            <CardContent>
+              <p className="text-muted-foreground mb-4">No issues found. Create your first issue to get started.</p>
+              <Button variant="cyber" onClick={() => navigate('/create-issue')} className="gap-2">
+                <Plus className="h-4 w-4" />Create Issue
+              </Button>
+            </CardContent>
           </Card>
         ) : (
           <div className="grid gap-4">
@@ -196,9 +139,14 @@ const Dashboard = () => {
                     <Button variant="ghost" size="icon" onClick={() => deleteIssue(issue.id)} className="text-destructive hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>
                   </CardHeader>
                   <CardContent className="flex flex-wrap gap-2 items-center justify-between">
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2 items-center">
                       <Badge className={issueTypeLabels[issue.type].color}><TypeIcon className="h-3 w-3 mr-1" />{issueTypeLabels[issue.type].label}</Badge>
                       <Badge className={priorityColors[issue.priority]}>{issue.priority}</Badge>
+                      {issue.attachments && issue.attachments.length > 0 && (
+                        <Badge variant="outline" className="gap-1">
+                          <Paperclip className="h-3 w-3" />{issue.attachments.length} file(s)
+                        </Badge>
+                      )}
                     </div>
                     <Select value={issue.status} onValueChange={(v) => updateStatus(issue.id, v as IssueStatus)}>
                       <SelectTrigger className={`w-32 h-8 text-xs ${statusColors[issue.status]}`}><SelectValue /></SelectTrigger>
