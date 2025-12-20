@@ -59,14 +59,9 @@ const Navbar = () => {
               Contact
             </button>
             {user && (
-              <>
-                <Link to="/dashboard" className="text-muted-foreground hover:text-primary transition-colors">
-                  Dashboard
-                </Link>
-                <Link to="/create-issue" className="text-muted-foreground hover:text-primary transition-colors">
-                  Create Issue
-                </Link>
-              </>
+              <Link to="/dashboard" className="text-muted-foreground hover:text-primary transition-colors">
+                Dashboard
+              </Link>
             )}
           </div>
 
@@ -158,22 +153,13 @@ const Navbar = () => {
                 Contact
               </button>
               {user && (
-                <>
-                  <Link
-                    to="/dashboard"
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    Dashboard
-                  </Link>
-                  <Link
-                    to="/create-issue"
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    Create Issue
-                  </Link>
-                </>
+                <Link
+                  to="/dashboard"
+                  className="text-muted-foreground hover:text-primary transition-colors"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Dashboard
+                </Link>
               )}
               <div className="flex flex-col gap-2 pt-4 border-t border-border">
                 {user ? (
