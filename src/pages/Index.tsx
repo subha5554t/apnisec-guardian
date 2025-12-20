@@ -1,13 +1,34 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { Helmet } from 'react-helmet-async';
+import Navbar from '@/components/layout/Navbar';
+import Footer from '@/components/layout/Footer';
+import HeroSection from '@/components/landing/HeroSection';
+import ServicesSection from '@/components/landing/ServicesSection';
+import AboutSection from '@/components/landing/AboutSection';
+import ContactSection from '@/components/landing/ContactSection';
 
 const Index = () => {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
+    <>
+      <Helmet>
+        <title>ApniSec - Enterprise Cybersecurity Solutions | Cloud Security, VAPT, Red Team</title>
+        <meta name="description" content="ApniSec provides cutting-edge cybersecurity solutions including Cloud Security, Red Team Assessments, and comprehensive VAPT services to protect your organization from evolving digital threats." />
+        <meta name="keywords" content="cybersecurity, cloud security, VAPT, penetration testing, red team, security consulting, threat intelligence" />
+        <meta property="og:title" content="ApniSec - Enterprise Cybersecurity Solutions" />
+        <meta property="og:description" content="Protecting your digital assets with cutting-edge cybersecurity solutions." />
+        <meta property="og:type" content="website" />
+        <link rel="canonical" href="https://apnisec.com" />
+      </Helmet>
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <main>
+          <HeroSection />
+          <ServicesSection />
+          <AboutSection />
+          <ContactSection />
+        </main>
+        <Footer />
       </div>
-    </div>
+    </>
   );
 };
 
