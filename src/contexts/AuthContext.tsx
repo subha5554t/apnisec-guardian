@@ -64,9 +64,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { error };
       }
 
+      // Send welcome email
+      try {
+        await supabase.functions.invoke('send-welcome-email', {
+          body: { email, name: fullName },
+        });
+      } catch (emailError) {
+        console.error('Failed to send welcome email:', emailError);
+        // Don't fail registration if email fails
+      }
+
       toast({
         title: "Welcome to ApniSec!",
-        description: "Your account has been created successfully.",
+        description: "Your account has been created successfully. Check your email!",
       });
 
       return { error: null };

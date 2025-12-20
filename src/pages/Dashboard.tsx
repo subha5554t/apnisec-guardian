@@ -84,7 +84,23 @@ const Dashboard = () => {
     const { error } = await supabase.from('issues').insert({ ...newIssue, user_id: user?.id });
     if (error) toast({ title: 'Error', description: error.message, variant: 'destructive' });
     else {
-      toast({ title: 'Success', description: 'Issue created successfully' });
+      // Send email notification
+      try {
+        await supabase.functions.invoke('send-issue-notification', {
+          body: {
+            email: user?.email,
+            userName: user?.user_metadata?.full_name || user?.email?.split('@')[0],
+            issueTitle: newIssue.title,
+            issueType: newIssue.type,
+            issuePriority: newIssue.priority,
+            issueDescription: newIssue.description,
+          },
+        });
+      } catch (emailError) {
+        console.error('Failed to send issue notification:', emailError);
+      }
+      
+      toast({ title: 'Success', description: 'Issue created successfully. Email notification sent!' });
       setNewIssue({ title: '', description: '', type: 'cloud-security', priority: 'medium' });
       setIsDialogOpen(false);
       fetchIssues();
